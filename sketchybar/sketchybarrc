@@ -1,0 +1,32 @@
+#!/bin/bash
+include "$HOME/.config/sketchybar/icons.sh"
+PLUGIN_DIR="$CONFIG_DIR/plugins"
+SCRIPTS_DIR="$CONFIG_DIR/scripts"
+ITEMS_DIR="$CONFIG_DIR/items"
+
+#-----Appearance-----#
+source "$SCRIPTS_DIR/appearance.sh"
+
+#-----Defaults-----#
+source "$SCRIPTS_DIR/default.sh"
+
+#-----Left-Items-----#
+source "$ITEMS_DIR/spaces.sh"
+source "$ITEMS_DIR/chevron.sh"
+# source "$ITEMS_DIR/packages.sh"
+
+#-----Right-Items-----#
+source "$ITEMS_DIR/clock.sh"
+source "$ITEMS_DIR/volume.sh"
+source "$ITEMS_DIR/battery.sh"
+source "$ITEMS_DIR/wifi.sh"
+source "$ITEMS_DIR/sys_stats.sh"
+#
+
+
+#-----Brackets-----#
+# source "$SCRIPTS_DIR/brackets.sh"
+# source "$SCRIPTS_DIR/brackets.sh"
+
+#-----Finalize-----#
+sketchybar --update
