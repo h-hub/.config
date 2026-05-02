@@ -18,6 +18,18 @@ mason.setup({
 })
 
 mason_lspconfig.setup({
-  -- ensure_installed = { "pyright", "lua_ls", "gopls", "bashls", "jdtls" },
-  ensure_installed = { "basedpyright", "lua_ls", "gopls", "bashls", "isort" },
+  ensure_installed = {
+    "basedpyright",
+    "lua_ls",
+    "gopls",
+    "bashls",
+    "isort",
+    "tombi",
+    "vtsls",               -- High-performance TypeScript/JavaScript (replaces ts_ls)
+    "html",                -- HTML
+    "cssls",               -- CSS/SCSS/Less
+    "tailwindcss",         -- Tailwind CSS (if applicable)
+    "eslint",              -- Linting for JS/TS/React
+    "emmet_language_server", -- Fast HTML/JSX expansion (optional but recommended)
+  },
 })

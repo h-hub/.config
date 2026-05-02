@@ -1,7 +1,8 @@
 vim.pack.add({
   "https://github.com/folke/tokyonight.nvim",
   "https://github.com/rose-pine/neovim",
-  { src = "https://github.com/catppuccin/nvim", name = "catppuccin" }
+  { src = "https://github.com/catppuccin/nvim",              name = "catppuccin" },
+  { src = "https://github.com/scottmckendry/cyberdream.nvim" }
 })
 
 local bg = "#011628"
@@ -58,19 +59,23 @@ require("rose-pine").setup({
 
 
 require("catppuccin").setup({
-    flavour = "mocha", -- Force mocha
-    custom_highlights = function(colors)
-        return {
-            Visual = { bg = colors.surface2, style = { "bold" } }, -- Custom visual selection
-            LineNr = { fg = colors.overlay0 }, -- Subtle line numbers
-        }
-    end,
-    integrations = {
-        cmp = true,
-        gitsigns = true,
-        nvimtree = true,
-        treesitter = true,
-    },
+  flavour = "mocha", -- Force mocha
+  custom_highlights = function(colors)
+    return {
+      Visual = { bg = colors.surface2, style = { "bold" } }, -- Custom visual selection
+      LineNr = { fg = colors.overlay0 },                     -- Subtle line numbers
+    }
+  end,
+  integrations = {
+    cmp = true,
+    gitsigns = true,
+    nvimtree = true,
+    treesitter = true,
+  },
+})
+
+require("cyberdream").setup({
+  variant = "default",
 })
 
 -- 3. Load the colorscheme
@@ -113,6 +118,25 @@ vim.api.nvim_create_autocmd("FileType", {
       return
     end
     vim.cmd([[colorscheme catppuccin]])
+    prog_lang_theme = true
+  end,
+})
+
+
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { 
+    "typescript", 
+    "typescriptreact", 
+    "javascript", 
+    "javascriptreact", 
+    "css", 
+    "html" 
+  },
+  callback = function()
+    if prog_lang_theme then
+      return
+    end
+    vim.cmd("colorscheme cyberdream")
     prog_lang_theme = true
   end,
 })

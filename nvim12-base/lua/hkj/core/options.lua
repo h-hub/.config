@@ -72,13 +72,13 @@ vim.opt.undofile = true
 
 vim.api.nvim_set_hl(0, 'YankHighlight', { bg = '#ff9e64', fg = '#000000' })
 
-vim.api.nvim_create_autocmd('TextYankPost', {
-  desc = 'Highlight when yanking (copying) text',
-  group = vim.api.nvim_create_augroup('highlight-yank', { clear = true }),
+vim.api.nvim_create_autocmd("TextYankPost", {
+  desc = "Highlight when yanking (copying) text",
+  group = vim.api.nvim_create_augroup("kickstart-highlight-yank", { clear = true }),
   callback = function()
     vim.highlight.on_yank({
-      higroup = 'YankHighlight',
-      timeout = 100,
+      higroup = "IncSearch", -- The highlight group used (IncSearch is usually a bright color)
+      timeout = 150,         -- How long the highlight lasts in milliseconds
     })
   end,
 })

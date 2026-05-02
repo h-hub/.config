@@ -1,5 +1,17 @@
-vim.lsp.enable("basedpyright")
-vim.lsp.enable("lua_ls")
-vim.lsp.enable("gopls")
-vim.lsp.enable("bashls")
-vim.lsp.enable("jdtls")
+local servers = { 
+  "basedpyright", 
+  "lua_ls", 
+  "gopls", 
+  "bashls", 
+  "tombi",
+  "vtsls",        -- TypeScript / React
+  "html",         -- HTML
+  "cssls",        -- CSS
+  "tailwindcss",  -- Tailwind
+  "eslint"        -- Linting
+}
+
+-- Enable them all
+for _, server in ipairs(servers) do
+  vim.lsp.enable(server)
+end
