@@ -27,6 +27,7 @@ end
 
 
 local is_python_dap_setup = false
+# required pip install debugpy
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "python",
   callback = function()
