@@ -20,11 +20,13 @@ local Terminal = require("toggleterm.terminal").Terminal
 local term1 = Terminal:new({ direction = "horizontal", size = 15, count = 1 })
 local term2 = Terminal:new({ direction = "horizontal", size = 15, count = 2 })
 local term3 = Terminal:new({ direction = "horizontal", size = 15, count = 3 })
+local termv1 = Terminal:new({ direction = "vertical", size = 15, count = 4 })
 
 vim.keymap.set("n", "<leader>t1", function() term1:toggle() end, { desc = "Terminal 1 (bottom)" })
 vim.keymap.set("n", "<leader>tt", function() term1:toggle() end, { desc = "Terminal 1 (bottom)" })
 vim.keymap.set("n", "<leader>t2", function() term2:toggle() end, { desc = "Terminal 2 (bottom)" })
 vim.keymap.set("n", "<leader>t3", function() term3:toggle() end, { desc = "Terminal 3 (bottom)" })
+vim.keymap.set("n", "<leader>tv", function() termv1:toggle() end, { desc = "Terminal v (left)" })
 
 vim.api.nvim_create_autocmd("TermOpen", {
   pattern = "term://*",

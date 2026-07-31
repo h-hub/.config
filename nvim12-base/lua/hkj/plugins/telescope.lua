@@ -8,15 +8,12 @@ vim.pack.add({
 
 local fzf_dir = vim.fn.stdpath("data")
     .. "/site/pack/core/opt/telescope-fzf-native.nvim"
--- Build fzf-native after pack changes (install/update)
+
 vim.api.nvim_create_autocmd("PackChanged", {
   desc = "Build telescope-fzf-native.nvim after vim.pack changes",
   callback = function(ev)
-    -- ev.kind is typically "install"/"update"/etc (varies by Nvim version)
-    -- ev.spec (or ev.data) contains the pack spec on some versions
     local name = (ev.spec and (ev.spec.name or ev.spec.src)) or ev.name or ""
 
-    -- Be tolerant across Neovim versions: just pattern-match the repo name.
     if type(name) == "string" and name:find("telescope%-fzf%-native") then
       vim.notify("Building telescope-fzf-native.nvim (make)...", vim.log.levels.INFO)
 
@@ -55,6 +52,17 @@ telescope.setup({
         ["<C-q>"] = actions.send_selected_to_qflist + actions.open_qflist,
       },
     },
+    get_selection_window = function()
+      local wins = vim.api.nvim_list_wins()
+      table.insert(wins, 1, vim.api.nvim_get_current_win())
+      for _, win in ipairs(wins) do
+        local buf = vim.api.nvim_win_get_buf(win)
+        if vim.bo[buf].buftype == "" then
+          return win
+        end
+      end
+      return 0
+    end,
   },
 })
 
@@ -68,3 +76,4 @@ vim.keymap.set("n", "<leader>fs", "<cmd>Telescope live_grep<cr>", { desc = "Find
 vim.keymap.set("n", "<leader>fc", "<cmd>Telescope grep_string<cr>", { desc = "Find string under cursor in cwd" })
 vim.keymap.set("n", "<leader>ft", "<cmd>TodoTelescope<cr>", { desc = "Find todos" })
 vim.keymap.set("n", "<leader>fb", "<cmd>Telescope buffers<cr>", { desc = "List open buffers" })
+vim.keymap.set("n", "<leader>fg", "<cmd>Telescope git_status<cr>", { desc = "Git diff preview" })

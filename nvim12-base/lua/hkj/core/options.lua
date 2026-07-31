@@ -84,3 +84,25 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 })
 
 vim.api.nvim_set_hl(0, "Visual", { bg = "#BFF5F0", fg = "#000000" })
+
+
+-- Enable autoread
+vim.opt.autoread = true
+
+-- Watch for file changes more aggressively
+vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI" }, {
+    pattern = "*",
+    callback = function()
+        if vim.fn.getcmdwintype() == "" then
+            vim.cmd("checktime")
+        end
+    end,
+})
+
+-- Notification when a file changes externally (Optional but helpful!)
+vim.api.nvim_create_autocmd("FileChangedShellPost", {
+    pattern = "*",
+    callback = function()
+        vim.notify("File changed outside of Neovim. Reloaded!", vim.log.levels.INFO)
+    end,
+})
