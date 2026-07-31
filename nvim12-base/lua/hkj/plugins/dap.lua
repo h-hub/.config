@@ -16,7 +16,7 @@ dapui.setup()
 
 -- Auto open/close the UI
 dap.listeners.after.event_initialized["dapui_config"] = function()
-  dapui.open()
+  dapui.open({reset = true})
 end
 dap.listeners.before.event_terminated["dapui_config"] = function()
   dapui.close()
@@ -27,6 +27,7 @@ end
 
 
 local is_python_dap_setup = false
+-- # required pip install debugpy
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "python",
   callback = function()

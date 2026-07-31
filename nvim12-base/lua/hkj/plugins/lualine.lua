@@ -57,6 +57,11 @@ lualine.setup({
   },
   sections = {
     lualine_x = {
+      {
+        function() return " " end,
+        cond = function() return package.loaded["dap"] and require("dap").session() ~= nil end,
+        color = { fg = "#ebdbb2", bg = "#fb4934" }, -- High contrast colors
+      },
       { "encoding" },
       { "fileformat" },
       { "filetype" },
