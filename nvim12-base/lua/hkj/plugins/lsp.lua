@@ -8,6 +8,7 @@ local servers = {
   "html",         -- HTML
   "cssls",        -- CSS
   "tailwindcss",  -- Tailwind
+  "clangd"
   "eslint",       -- Linting
   "jdtls",        -- Java
 }

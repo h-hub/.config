@@ -23,7 +23,6 @@ mason_lspconfig.setup({
     "lua_ls",
     "gopls",
     "bashls",
-    "isort",
     "tombi",
     "vtsls",               -- High-performance TypeScript/JavaScript (replaces ts_ls)
     "html",                -- HTML
@@ -31,6 +30,7 @@ mason_lspconfig.setup({
     "tailwindcss",         -- Tailwind CSS (if applicable)
     "eslint",              -- Linting for JS/TS/React
     "emmet_language_server", -- Fast HTML/JSX expansion (optional but recommended)
+    "clangd"
     "jdtls",               -- Java
   },
 })
