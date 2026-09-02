@@ -88,3 +88,66 @@ vim.keymap.set('n', '<leader>dX', function()
     end
   end
 end, { desc = "Make Debug Console 50% height" })
+
+local function setup_c_cpp_dap()
+  local dap = require("dap")
+  dap.adapters.codelldb = {
+    type = 'server',
+    port = "${port}",
+    executable = {
+      command = 'codelldb',
+      args = {"--port", "${port}"},
+    }
+  }
+
+  dap.configurations.c = {
+    {
+      name = "Launch file",
+      type = "codelldb",
+      request = "launch",
+      program = function()
+        local executable_choices = {}
+        local files = vim.fn.glob(vim.fn.getcwd() .. '/*', false, true)
+        for _, file in ipairs(files) do
+          if vim.fn.executable(file) == 1 and vim.fn.isdirectory(file) == 0 then
+            table.insert(executable_choices, file)
+          end
+        end
+
+        if #executable_choices == 0 then
+          return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
+        elseif #executable_choices == 1 then
+          return executable_choices[1]
+        else
+          local choice = vim.fn.inputlist({"Select executable to debug:", unpack(executable_choices)})
+          if choice > 0 and choice <= #executable_choices then
+            return executable_choices[choice]
+          else
+            return nil
+          end
+        end
+      end,
+      cwd = "${workspaceFolder}",
+      stopAtEntry = true,
+    },
+  }
+  dap.configurations.cpp = dap.configurations.c
+
+end
+
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "c", "cpp" },
+  callback = function()
+    local registry = require("mason-registry")
+    local codelldb_pkg = registry.get_package("codelldb")
+    if not codelldb_pkg:is_installed() then
+      vim.api.nvim_notify("Installing codelldb for debugging... Please wait until this is finished.", vim.log.levels.INFO, { title = "nvim-dap" })
+      codelldb_pkg:install():on("exit", function()
+        vim.api.nvim_notify("codelldb installed successfully.", vim.log.levels.INFO, { title = "nvim-dap" })
+        setup_c_cpp_dap()
+      end)
+    else
+      setup_c_cpp_dap()
+    end
+  end,
+})

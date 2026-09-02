@@ -8,7 +8,8 @@ local servers = {
   "html",         -- HTML
   "cssls",        -- CSS
   "tailwindcss",  -- Tailwind
-  "eslint"        -- Linting
+  "eslint",        -- Linting
+  "clangd"
 }
 
 -- Enable them all
