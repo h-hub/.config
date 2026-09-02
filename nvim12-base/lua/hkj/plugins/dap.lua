@@ -54,6 +54,35 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
+-- Java: adapter asks jdtls to start a debug session, then connects to the returned port.
+-- Requires ~/.config/jdtls/bundles/*.jar to include the java-debug plugin.
+dap.adapters.java = function(callback)
+  local clients = vim.lsp.get_clients({ name = "jdtls" })
+  if #clients == 0 then
+    vim.notify("jdtls is not attached to any buffer", vim.log.levels.ERROR)
+    return
+  end
+  clients[1]:request("workspace/executeCommand", {
+    command = "vscode.java.startDebugSession",
+  }, function(err, port)
+    if err then
+      vim.notify("Failed to start java debug session: " .. tostring(err.message), vim.log.levels.ERROR)
+      return
+    end
+    callback({ type = "server", host = "127.0.0.1", port = port })
+  end)
+end
+
+dap.configurations.java = {
+  {
+    type = "java",
+    request = "attach",
+    name = "Attach to remote JVM (5005)",
+    hostName = "127.0.0.1",
+    port = 5005,
+  },
+}
+
 -- Keymaps (edit to taste)
 vim.keymap.set("n", "<leader>dc", function()
   require("dap").continue()
