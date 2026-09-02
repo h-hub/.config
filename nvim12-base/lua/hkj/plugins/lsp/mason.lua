@@ -31,5 +31,6 @@ mason_lspconfig.setup({
     "eslint",              -- Linting for JS/TS/React
     "emmet_language_server", -- Fast HTML/JSX expansion (optional but recommended)
     "clangd"
+    "jdtls",               -- Java
   },
 })
