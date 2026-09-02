@@ -1,14 +1,15 @@
-local servers = { 
-  "basedpyright", 
-  "lua_ls", 
-  "gopls", 
-  "bashls", 
+local servers = {
+  "basedpyright",
+  "lua_ls",
+  "gopls",
+  "bashls",
   "tombi",
   "vtsls",        -- TypeScript / React
   "html",         -- HTML
   "cssls",        -- CSS
   "tailwindcss",  -- Tailwind
-  "eslint"        -- Linting
+  "eslint",       -- Linting
+  "jdtls",        -- Java
 }
 
 -- Enable them all

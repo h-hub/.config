@@ -31,5 +31,6 @@ mason_lspconfig.setup({
     "tailwindcss",         -- Tailwind CSS (if applicable)
     "eslint",              -- Linting for JS/TS/React
     "emmet_language_server", -- Fast HTML/JSX expansion (optional but recommended)
+    "jdtls",               -- Java
   },
 })
