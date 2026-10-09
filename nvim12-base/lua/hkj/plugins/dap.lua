@@ -54,6 +54,129 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
+local is_js_dap_setup = false
+-- JS/TS: vscode-js-debug's DAP server, installed to ~/.local/share/js-debug via
+--   curl -sL https://github.com/microsoft/vscode-js-debug/releases/download/v1.140.0/js-debug-dap-v1.140.0.tar.gz \
+--     | tar xz -C ~/.local/share/js-debug --strip-components=1
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "typescript", "javascript", "typescriptreact", "javascriptreact" },
+  callback = function()
+    if is_js_dap_setup then
+      return
+    end
+
+    local js_debug = vim.fn.expand("~/.local/share/js-debug/src/dapDebugServer.js")
+    if vim.fn.filereadable(js_debug) == 0 then
+      vim.notify("js-debug not found at " .. js_debug, vim.log.levels.WARN)
+      return
+    end
+
+    -- js-debug reports the real failure (dead attach target, spawn error) on
+    -- its stderr and then exits 0 — and nvim-dap deletes the adapter stderr log
+    -- on a zero exit (session.lua: `if code == 0 then stderrlog:remove()`), so
+    -- the cause is destroyed and all you get is "Debug adapter disconnected".
+    -- Keep our own copy, outside nvim-dap's control.
+    local stderr_log = vim.fn.stdpath("cache") .. "/js-debug-stderr.log"
+
+    -- Probe a TCP port so an attach can fail with a useful message instead of
+    -- the adapter dying silently. Async: enrich_config is callback-based.
+    local function probe(host, port, cb)
+      local uv = vim.uv or vim.loop
+      local sock, timer, done = uv.new_tcp(), uv.new_timer(), false
+      local function finish(ok)
+        if done then
+          return
+        end
+        done = true
+        timer:stop()
+        timer:close()
+        sock:close()
+        cb(ok)
+      end
+      timer:start(700, 0, function()
+        finish(false)
+      end)
+      sock:connect(host, port, function(err)
+        finish(err == nil)
+      end)
+    end
+
+    dap.adapters["pwa-node"] = {
+      type = "server",
+      host = "127.0.0.1",
+      port = "${port}",
+      -- `exec` keeps the PID nvim-dap spawned, so it can still kill the adapter.
+      -- ${port} is substituted in every executable arg (session.lua:1469).
+      executable = {
+        command = "sh",
+        args = {
+          "-c",
+          ('exec node %s "$@" 2>>%s'):format(vim.fn.shellescape(js_debug), vim.fn.shellescape(stderr_log)),
+          "sh",
+          "${port}",
+        },
+      },
+      -- An attach to a port nothing is listening on makes js-debug log
+      -- "Could not find any debuggable target" to stderr, never answer the
+      -- attach request, and close the socket — which surfaces as the useless
+      -- pair "Debug adapter disconnected" / "Debug adapter didn't respond".
+      -- Catch it before the session starts.
+      enrich_config = function(config, on_config)
+        if config.request ~= "attach" then
+          on_config(config)
+          return
+        end
+        local host = config.address or config.host or "127.0.0.1"
+        local port = tonumber(config.port) or 9229
+        probe(host, port, function(ok)
+          vim.schedule(function()
+            if ok then
+              on_config(config)
+            else
+              vim.notify(
+                ("Nothing is listening on %s:%d — start the process with --inspect-brk first, e.g.\n"):format(host, port)
+                  .. "  node --inspect-brk --import tsx src/handlers/<handler>.ts\n"
+                  .. "  npx vitest --inspect-brk --no-file-parallelism --project unit <file>",
+                vim.log.levels.ERROR
+              )
+            end
+          end)
+        end)
+      end,
+    }
+    -- A .vscode/launch.json written for VS Code says `"type": "node"`, which
+    -- nvim-dap looks up verbatim. Without this alias dap.ext.vscode reports
+    -- "Config references missing adapter `node`".
+    dap.adapters.node = dap.adapters["pwa-node"]
+
+    -- Fallback when a project has no launch.json: attach to --inspect-brk.
+    local attach = {
+      type = "pwa-node",
+      request = "attach",
+      name = "Attach to :9229",
+      address = "127.0.0.1",
+      port = 9229,
+      cwd = "${workspaceFolder}",
+      sourceMaps = true,
+      -- tsx transforms through a loader, so its inline maps can land in paths
+      -- js-debug excludes by default. Without this, breakpoints silently fail
+      -- to bind instead of erroring.
+      resolveSourceMapLocations = { "${workspaceFolder}/**", "!**/node_modules/**/*.map" },
+      skipFiles = { "<node_internals>/**" },
+    }
+    for _, ft in ipairs({ "typescript", "javascript" }) do
+      dap.configurations[ft] = { attach }
+    end
+
+    -- A project's .vscode/launch.json is picked up automatically on-demand by
+    -- nvim-dap (:help dap-providers), so there is no load_launchjs call here —
+    -- it is deprecated and warns. Registering the adapters above is all that
+    -- launch.json needs; its configs merge with the fallback below.
+
+    is_js_dap_setup = true
+  end,
+})
+
 -- Java: adapter asks jdtls to start a debug session, then connects to the returned port.
 -- Requires ~/jdtls-bundles/*.jar to include the java-debug plugin.
 local function current_jdtls_client(bufnr)
