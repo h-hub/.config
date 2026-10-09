@@ -6,12 +6,14 @@ return {
   -- Every entry is exposed to projects; jdtls matches `name` to the project's
   -- declared Java version (JavaSE-1.8 / -11 / -17 / -21 / -25 / ...).
   jdks = {
-    { name = "JavaSE-25", path = "/Users/2279450/codes/jdk/zulu25.32.21-ca-jdk25.0.2-macosx_aarch64" },
+    { name = "JavaSE-25", path = "/Users/harshajayamanna/.sdkman/candidates/java/25.0.1-amzn" },
+    { name = "JavaSE-21", path = "/Users/harshajayamanna/.sdkman/candidates/java/21.0.6-amzn" },
+    { name = "JavaSE-17", path = "/Users/harshajayamanna/.sdkman/candidates/java/17.0.14-amzn" },
+    { name = "JavaSE-1.8", path = "/Users/harshajayamanna/.sdkman/candidates/java/8.0.452-amzn" },
   },
 
-  lombok = vim.fn.expand("~/lombok-1.18.44.jar"),
+  -- lombok = vim.fn.expand("~/lombok-1.18.44.jar"),
 
-  -- TODO: download java-debug (and optionally java-test), then point bundles_dir at it.
-  -- bundles_dir = vim.fn.expand("~/jdtls-bundles"),
+  bundles_dir = vim.fn.expand("~/jdtls-bundles"),
   -- bundles     = {},
 }
