@@ -67,3 +67,22 @@ keymap.set("n", "Q", "<nop>")
 -- Stay in visual mode while indenting
 keymap.set("v", "<", "<gv", { desc = "Indent left and re-select" })
 keymap.set("v", ">", ">gv", { desc = "Indent right and re-select" })
+
+keymap.set('n', '<leader>+', function()
+  vim.cmd('resize +3')
+end, { desc = 'Increase pane height' })
+
+-- 2. Decrease height (<leader>-)
+keymap.set('n', '<leader>-', function()
+  vim.cmd('resize -3')
+end, { desc = 'Decrease pane height' })
+
+-- 3. Increase width (<leader>>)
+keymap.set('n', '<leader>>', function()
+  vim.cmd('vertical resize +5')
+end, { desc = 'Increase pane width' })
+
+-- 4. Decrease width (<leader><)
+keymap.set('n', '<leader><', function()
+  vim.cmd('vertical resize -5')
+end, { desc = 'Decrease pane width' })

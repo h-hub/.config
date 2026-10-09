@@ -22,8 +22,7 @@ require("hkj.plugins.dap")
 require("hkj.plugins.tiny-cmd")
 require("hkj.plugins.undotree")
 require("hkj.plugins.conform")
-
-vim.pack.add({
-  "https://github.com/nvim-lua/plenary.nvim",
-  "https://github.com/christoomey/vim-tmux-navigator"
-})
+require("hkj.plugins.vim-tmux-navigator")
+require("hkj.plugins.diffview")
+require("hkj.plugins.git-blame")
+require("hkj.plugins.harpoon")
