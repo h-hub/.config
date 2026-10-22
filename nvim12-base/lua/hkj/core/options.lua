@@ -1,5 +1,14 @@
 vim.cmd("let g:netrw_liststyle = 3")
 
+-- Disable unused remote-host providers.
+-- pynvim isn't installed, and the stock ftplugin/python.vim errors out when the
+-- python3 provider is missing -- that error aborts the whole FileType autocmd
+-- chain for .py files (which silently broke per-filetype colorschemes).
+vim.g.loaded_python3_provider = 0
+vim.g.loaded_ruby_provider = 0
+vim.g.loaded_perl_provider = 0
+vim.g.loaded_node_provider = 0
+
 local opt = vim.opt -- for conciseness
 
 -- line numbers

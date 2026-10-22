@@ -78,65 +78,38 @@ require("cyberdream").setup({
   variant = "default",
 })
 
--- 3. Load the colorscheme
--- Swap these lines to change your look:
--- vim.cmd([[colorscheme tokyonight]])
-vim.cmd([[colorscheme rose-pine]])
+-- 3. Load the colorscheme per filetype
+local theme_by_ft = {
+  python          = "tokyonight",
+  lua             = "rose-pine",
+  java            = "catppuccin",
+  typescript      = "cyberdream",
+  typescriptreact = "cyberdream",
+  javascript      = "cyberdream",
+  javascriptreact = "cyberdream",
+  css             = "cyberdream",
+  html            = "cyberdream",
+}
 
-local prog_lang_theme = false
+local default_theme = "rose-pine"
+local current_theme = nil
 
-vim.api.nvim_create_autocmd("FileType", {
-  pattern = "python",
-  callback = function()
-    if prog_lang_theme then
-      return
-    end
-    vim.cmd([[colorscheme tokyonight]])
-    prog_lang_theme = true
-  end,
+local function apply_theme()
+  -- ignore special/scratch buffers (nvim-tree, telescope, alpha, terminals...)
+  if vim.bo.buftype ~= "" then
+    return
+  end
+
+  local theme = theme_by_ft[vim.bo.filetype] or default_theme
+  if theme == current_theme then
+    return -- guard against redundant (expensive) reloads
+  end
+  current_theme = theme
+  vim.cmd.colorscheme(theme)
+end
+
+vim.api.nvim_create_autocmd({ "FileType", "BufWinEnter" }, {
+  callback = apply_theme,
 })
 
-
-
-vim.api.nvim_create_autocmd("FileType", {
-  pattern = "lua",
-  callback = function()
-    if prog_lang_theme then
-      return
-    end
-    vim.cmd([[colorscheme rose-pine]])
-    prog_lang_theme = true
-  end,
-})
-
-
-
-vim.api.nvim_create_autocmd("FileType", {
-  pattern = "java",
-  callback = function()
-    if prog_lang_theme then
-      return
-    end
-    vim.cmd([[colorscheme catppuccin]])
-    prog_lang_theme = true
-  end,
-})
-
-
-vim.api.nvim_create_autocmd("FileType", {
-  pattern = { 
-    "typescript", 
-    "typescriptreact", 
-    "javascript", 
-    "javascriptreact", 
-    "css", 
-    "html" 
-  },
-  callback = function()
-    if prog_lang_theme then
-      return
-    end
-    vim.cmd("colorscheme cyberdream")
-    prog_lang_theme = true
-  end,
-})
+apply_theme()
