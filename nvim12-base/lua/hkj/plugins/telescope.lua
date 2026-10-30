@@ -77,3 +77,4 @@ vim.keymap.set("n", "<leader>fc", "<cmd>Telescope grep_string<cr>", { desc = "Fi
 vim.keymap.set("n", "<leader>ft", "<cmd>TodoTelescope<cr>", { desc = "Find todos" })
 vim.keymap.set("n", "<leader>fb", "<cmd>Telescope buffers<cr>", { desc = "List open buffers" })
 vim.keymap.set("n", "<leader>fg", "<cmd>Telescope git_status<cr>", { desc = "Git diff preview" })
+vim.keymap.set("n", "<leader>fj", "<cmd>Telescope jumplist<cr>", { desc = "List jumplist (where I've been)" })

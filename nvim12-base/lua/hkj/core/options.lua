@@ -106,3 +106,51 @@ vim.api.nvim_create_autocmd("FileChangedShellPost", {
         vim.notify("File changed outside of Neovim. Reloaded!", vim.log.levels.INFO)
     end,
 })
+
+-- Jump back to the last cursor position when reopening a file. Harpoon marks
+-- are pinned on purpose, so this is what covers "put me back where I was" for
+-- everything else: recent-files pickers, :e, reopening after a restart.
+vim.api.nvim_create_autocmd("BufReadPost", {
+    desc = "Restore last cursor position",
+    group = vim.api.nvim_create_augroup("hkj-last-loc", { clear = true }),
+    callback = function(ev)
+        -- only the first read of a buffer, so :e does not yank the cursor back
+        if vim.bo[ev.buf].buftype ~= "" or vim.b[ev.buf].hkj_last_loc then
+            return
+        end
+        vim.b[ev.buf].hkj_last_loc = true
+
+        local win = vim.api.nvim_get_current_win()
+
+        -- deferred by a tick: this autocmd is registered before filetypedetect,
+        -- so at BufReadPost the filetype is still empty and the skip list below
+        -- would never match.
+        -- The window check below is also what keeps harpoon jumps intact:
+        -- harpoon bufload()s the file while the window still shows the old
+        -- buffer, so this bails out and leaves the pinned mark alone.
+        vim.schedule(function()
+            if
+                not vim.api.nvim_buf_is_valid(ev.buf)
+                or not vim.api.nvim_win_is_valid(win)
+                or vim.api.nvim_win_get_buf(win) ~= ev.buf
+            then
+                return
+            end
+
+            -- commit messages always want the top
+            local exclude = { "gitcommit", "gitrebase", "hgcommit", "svn" }
+            if vim.tbl_contains(exclude, vim.bo[ev.buf].filetype) then
+                return
+            end
+
+            local mark = vim.api.nvim_buf_get_mark(ev.buf, '"')
+            if mark[1] > 0 and mark[1] <= vim.api.nvim_buf_line_count(ev.buf) then
+                pcall(vim.api.nvim_win_set_cursor, win, mark)
+                -- open any fold the cursor landed inside
+                vim.api.nvim_win_call(win, function()
+                    vim.cmd("normal! zv")
+                end)
+            end
+        end)
+    end,
+})

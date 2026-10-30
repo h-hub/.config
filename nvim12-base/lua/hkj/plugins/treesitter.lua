@@ -34,7 +34,8 @@ treesitter.install({
   "python",
   "go",
   "java",
-  "toml"
+  "toml",
+  "html"
 })
 
 treesitter.setup({
