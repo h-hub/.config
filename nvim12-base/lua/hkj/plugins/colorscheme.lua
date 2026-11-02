@@ -2,7 +2,8 @@ vim.pack.add({
   "https://github.com/folke/tokyonight.nvim",
   "https://github.com/rose-pine/neovim",
   { src = "https://github.com/catppuccin/nvim",              name = "catppuccin" },
-  { src = "https://github.com/scottmckendry/cyberdream.nvim" }
+  { src = "https://github.com/scottmckendry/cyberdream.nvim" },
+  { src = "https://github.com/ellisonleao/gruvbox.nvim" },
 })
 
 local bg = "#011628"
@@ -78,6 +79,15 @@ require("cyberdream").setup({
   variant = "default",
 })
 
+-- Gruvbox Setup (Rust: warm orange/brown palette, matches the Rust logo)
+require("gruvbox").setup({
+  contrast = "hard",
+  italic = {
+    strings = false,
+    comments = true,
+  },
+})
+
 -- 3. Load the colorscheme
 -- Swap these lines to change your look:
 -- vim.cmd([[colorscheme tokyonight]])
@@ -137,6 +147,19 @@ vim.api.nvim_create_autocmd("FileType", {
       return
     end
     vim.cmd("colorscheme cyberdream")
+    prog_lang_theme = true
+  end,
+})
+
+
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "rust", "ron" },
+  callback = function()
+    if prog_lang_theme then
+      return
+    end
+    vim.o.background = "dark"
+    vim.cmd([[colorscheme gruvbox]])
     prog_lang_theme = true
   end,
 })

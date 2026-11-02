@@ -177,6 +177,132 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
+local is_rust_dap_setup = false
+-- Rust: codelldb (installed by mason, `:MasonInstall codelldb`) speaking DAP
+-- over a TCP port. Binaries are located via `cargo build --message-format=json`
+-- so workspaces and renamed [[bin]] targets resolve without typing a path.
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "rust",
+  callback = function()
+    if is_rust_dap_setup then
+      return
+    end
+
+    local codelldb = vim.fn.stdpath("data") .. "/mason/bin/codelldb"
+    if vim.fn.executable(codelldb) == 0 then
+      vim.notify("codelldb not found at " .. codelldb .. " — run :MasonInstall codelldb", vim.log.levels.WARN)
+      return
+    end
+
+    dap.adapters.codelldb = {
+      type = "server",
+      port = "${port}",
+      executable = {
+        command = codelldb,
+        args = { "--port", "${port}" },
+      },
+    }
+
+    -- Run a cargo command and return the executables it produced.
+    -- Returns nil (after notifying) when the build fails.
+    local function cargo_executables(cargo_args)
+      local cmd = vim.list_extend({ "cargo" }, cargo_args)
+      table.insert(cmd, "--message-format=json")
+      vim.notify("Running " .. table.concat(cmd, " ") .. " …", vim.log.levels.INFO)
+
+      local out = vim.system(cmd, { text = true, cwd = vim.fn.getcwd() }):wait()
+      if out.code ~= 0 then
+        vim.notify("cargo failed (exit " .. out.code .. "):\n" .. (out.stderr or ""), vim.log.levels.ERROR)
+        return nil
+      end
+
+      local executables = {}
+      for line in (out.stdout or ""):gmatch("[^\n]+") do
+        local ok, msg = pcall(vim.json.decode, line)
+        if ok and type(msg) == "table" and msg.reason == "compiler-artifact" and msg.executable ~= vim.NIL then
+          table.insert(executables, msg.executable)
+        end
+      end
+      return executables
+    end
+
+    -- Resolve the program to debug. nvim-dap runs config functions inside a
+    -- coroutine (:help dap-configuration), so vim.ui.select can be awaited.
+    local function pick_program(cargo_args)
+      return function()
+        local executables = cargo_executables(cargo_args)
+        if not executables then
+          return dap.ABORT
+        end
+        if #executables == 0 then
+          vim.notify("cargo produced no executable — is there a [[bin]] target?", vim.log.levels.WARN)
+          return dap.ABORT
+        end
+        if #executables == 1 then
+          return executables[1]
+        end
+
+        return coroutine.create(function(co)
+          vim.ui.select(executables, {
+            prompt = "Select executable to debug",
+            format_item = function(path)
+              return vim.fn.fnamemodify(path, ":t")
+            end,
+          }, function(choice)
+            coroutine.resume(co, choice or dap.ABORT)
+          end)
+        end)
+      end
+    end
+
+    local function program_args()
+      local input = vim.fn.input("Program arguments: ")
+      return input == "" and {} or vim.split(input, "%s+", { trimempty = true })
+    end
+
+    dap.configurations.rust = {
+      {
+        type = "codelldb",
+        request = "launch",
+        name = "Launch (cargo build)",
+        program = pick_program({ "build" }),
+        args = program_args,
+        cwd = "${workspaceFolder}",
+        stopOnEntry = false,
+        sourceLanguages = { "rust" },
+      },
+      {
+        type = "codelldb",
+        request = "launch",
+        name = "Debug tests (cargo test --no-run)",
+        program = pick_program({ "test", "--no-run" }),
+        args = function()
+          -- Optional test-name filter, forwarded to the test harness.
+          local filter = vim.fn.input("Test filter (empty = all): ")
+          local args = { "--nocapture" }
+          if filter ~= "" then
+            table.insert(args, 1, filter)
+          end
+          return args
+        end,
+        cwd = "${workspaceFolder}",
+        stopOnEntry = false,
+        sourceLanguages = { "rust" },
+      },
+      {
+        type = "codelldb",
+        request = "attach",
+        name = "Attach to process",
+        pid = require("dap.utils").pick_process,
+        cwd = "${workspaceFolder}",
+        sourceLanguages = { "rust" },
+      },
+    }
+
+    is_rust_dap_setup = true
+  end,
+})
+
 -- Java: adapter asks jdtls to start a debug session, then connects to the returned port.
 -- Requires ~/jdtls-bundles/*.jar to include the java-debug plugin.
 local function current_jdtls_client(bufnr)

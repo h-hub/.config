@@ -35,6 +35,7 @@ treesitter.install({
   "go",
   "java",
   "toml",
+  "rust",
   "html"
 })
 
