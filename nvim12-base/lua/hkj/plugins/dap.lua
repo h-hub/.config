@@ -272,6 +272,19 @@ vim.api.nvim_create_autocmd("FileType", {
         sourceLanguages = { "rust" },
       },
       {
+        -- Equivalent of `cargo run`, but output lands in the DAP console and
+        -- the process can be stopped with the usual DAP controls. Breakpoints
+        -- are ignored (noDebug), so there is no debugger overhead.
+        type = "codelldb",
+        request = "launch",
+        name = "Run (cargo build, no debugger)",
+        program = pick_program({ "build" }),
+        args = program_args,
+        cwd = "${workspaceFolder}",
+        noDebug = true,
+        sourceLanguages = { "rust" },
+      },
+      {
         type = "codelldb",
         request = "launch",
         name = "Debug tests (cargo test --no-run)",
@@ -302,6 +315,22 @@ vim.api.nvim_create_autocmd("FileType", {
     is_rust_dap_setup = true
   end,
 })
+
+-- Build and run the current Cargo package under the debugger, skipping the
+-- configuration picker (same behaviour <leader>dc has for Java).
+local function run_rust_program()
+  local configs = dap.configurations.rust
+  if not configs then
+    vim.notify("Rust DAP is not configured — run :MasonInstall codelldb and reopen the file", vim.log.levels.ERROR)
+    return
+  end
+  for _, config in ipairs(configs) do
+    if config.name == "Launch (cargo build)" then
+      dap.run(config)
+      return
+    end
+  end
+end
 
 -- Java: adapter asks jdtls to start a debug session, then connects to the returned port.
 -- Requires ~/jdtls-bundles/*.jar to include the java-debug plugin.
@@ -450,6 +479,11 @@ dap.configurations.java = {
 
 -- Keymaps (edit to taste)
 vim.keymap.set("n", "<leader>dc", function()
+  if vim.bo.filetype == "rust" and not dap.session() then
+    run_rust_program()
+    return
+  end
+
   if vim.bo.filetype == "java" then
     local main_class = current_java_main_class()
     if not main_class then
