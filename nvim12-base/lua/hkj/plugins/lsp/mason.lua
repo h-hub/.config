@@ -40,6 +40,8 @@ mason_lspconfig.setup({
 -- remit, so install them through the mason registry directly.
 local ensure_tools = {
   "codelldb", -- Rust / C / C++ debug adapter (see lua/hkj/plugins/dap.lua)
+  "debugpy",  -- Python debug adapter
+  -- ripgrep is not a mason package; install it with `brew install ripgrep`.
 }
 
 local registry = require("mason-registry")
