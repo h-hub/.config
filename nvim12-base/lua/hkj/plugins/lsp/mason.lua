@@ -32,5 +32,26 @@ mason_lspconfig.setup({
     "eslint",              -- Linting for JS/TS/React
     "emmet_language_server", -- Fast HTML/JSX expansion (optional but recommended)
     "jdtls",               -- Java
+    "rust_analyzer",       -- Rust
   },
 })
+
+-- Non-LSP tools (debug adapters, formatters) are outside mason-lspconfig's
+-- remit, so install them through the mason registry directly.
+local ensure_tools = {
+  "codelldb", -- Rust / C / C++ debug adapter (see lua/hkj/plugins/dap.lua)
+  "debugpy",  -- Python debug adapter
+  -- ripgrep is not a mason package; install it with `brew install ripgrep`.
+}
+
+local registry = require("mason-registry")
+registry.refresh(function()
+  for _, name in ipairs(ensure_tools) do
+    if not registry.has_package(name) then
+      vim.notify("mason: unknown package " .. name, vim.log.levels.WARN)
+    elseif not registry.is_installed(name) then
+      vim.notify("mason: installing " .. name, vim.log.levels.INFO)
+      registry.get_package(name):install()
+    end
+  end
+end)

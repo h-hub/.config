@@ -10,6 +10,7 @@ local servers = {
   "tailwindcss",  -- Tailwind
   "eslint",       -- Linting
   "jdtls",        -- Java
+  "rust_analyzer", -- Rust
 }
 
 -- Enable them all
